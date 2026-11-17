@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#22675e">
+  <meta name="description" content="Catat tugas mahasiswa, lampirkan foto atau VN, dan atur alarm harian menjelang tenggat.">
+  <title>Sela Tugas, ruang untuk beresin tugas</title>
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Lewati ke tugas</a>
+  <header class="topbar wrap">
+    <a class="brand" href="/" aria-label="Sela Tugas, beranda"><span class="brand-mark" aria-hidden="true">s</span><span>Sela Tugas</span></a>
+    <nav aria-label="Navigasi utama"><a href="#task-list" aria-current="page">Tugas</a><a href="#reminders">Pengingat</a></nav>
+    <span class="local">Tersimpan di perangkat ini</span>
+  </header>
+  <main class="wrap" id="main">
+    <noscript>Aktifkan JavaScript agar daftar tugas dan pengingat dapat digunakan.</noscript>
+    <div class="page-head">
+      <div><p class="date" id="date"></p><h1>Satu tempat. Tugas lebih tertata.</h1><p class="muted">Mulai dari yang paling dekat.</p></div>
+      <button class="primary" id="new-task"><span aria-hidden="true">＋</span> Catat tugas</button>
+    </div>
+    <p id="global-error" class="error" role="alert" hidden></p>
+    <div id="loading" class="loading" role="status">Memuat tugas dari perangkat…</div>
+    <section class="overview" aria-label="Fokus dan pengingat" id="overview" hidden>
+      <article class="focus" id="focus"></article>
+      <aside class="reminders" id="reminders" aria-labelledby="reminder-heading">
+        <div class="section-title"><h2 id="reminder-heading">Pengingat harian</h2><button class="switch" id="alarm-toggle" role="switch" aria-checked="false" aria-label="Aktifkan alarm otomatis"><span></span></button></div>
+        <p id="alarm-status" class="small muted">Memuat pengaturan…</p>
+        <div class="stage-row"><span class="stage neutral">H-3</span><span>Mulai cicil</span><button class="quiet play" data-preview="3" aria-label="Coba suara alarm H-3">Coba suara</button></div>
+        <div class="stage-row"><span class="stage amber">H-2</span><span>Segera kerjakan</span><button class="quiet play" data-preview="2" aria-label="Coba suara alarm H-2">Coba suara</button></div>
+        <div class="stage-row"><span class="stage red">H-1</span><span>Urgent</span><button class="quiet play" data-preview="1" aria-label="Coba suara alarm H-1">Coba suara</button></div>
+        <p class="small reminder-note">Pukul 09.00 WIB. Biarkan proses aplikasi aktif dan laptop menyala.</p>
+        <p id="alarm-message" class="small" role="status"></p>
+      </aside>
+    </section>
+
+    <section class="editor" id="editor" aria-labelledby="editor-title" hidden>
+      <div class="section-title"><h2 id="editor-title">Catat tugas baru</h2><button class="quiet" id="cancel-top">Tutup</button></div>
+      <form id="task-form">
+        <div class="form-grid">
+          <label class="wide">Nama tugas (wajib)<input name="title" id="task-title" required maxlength="140" placeholder="Contoh, makalah integrasi sistem"></label>
+          <label>Mata kuliah<input name="course" maxlength="100" placeholder="Contoh, Integrasi Sistem"></label>
+          <label>Tanggal pengumpulan (wajib)<input name="due" type="date" required></label>
+          <label class="wide">Catatan atau instruksi<textarea name="description" id="description" maxlength="5000" rows="3" placeholder="Apa yang perlu dikerjakan?"></textarea></label>
+        </div>
+        <div class="capture-bar">
+          <label class="file-button">Lampirkan foto<input id="photo-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple></label>
+          <label class="file-button">Lampirkan audio<input id="audio-input" type="file" accept="audio/webm,audio/ogg,audio/wav,audio/mpeg,audio/mp4" multiple></label>
+          <button class="secondary" type="button" id="record">Rekam VN</button>
+          <button class="secondary" type="button" id="dictate">Dikte catatan</button>
+        </div>
+        <p id="capture-status" class="small muted" role="status">Maksimal empat lampiran, masing-masing 6 MB. Dikte mengisi teks dari suara langsung.</p>
+        <div class="attachments" id="attachments"></div>
+        <p id="form-error" class="error" role="alert" hidden></p>
+        <div class="form-footer"><button class="primary" type="submit" id="save">Simpan tugas</button><button type="button" class="quiet" id="cancel">Batal</button><button type="button" class="danger" id="delete-task" hidden>Hapus tugas</button></div>
+      </form>
+    </section>
+
+    <section id="task-list" class="task-section" aria-labelledby="list-heading">
+      <div class="list-head"><div class="section-title"><h2 id="list-heading">Daftar tugas</h2><span id="task-count" class="count"></span></div>
+        <label class="search">Cari tugas<input id="search" type="search" placeholder="Nama tugas atau mata kuliah"></label>
+      </div>
+      <div class="filter-bar"><div class="filters" role="group" aria-label="Tampilkan tugas"><button class="filter" data-filter="active" aria-pressed="true">Aktif</button><button class="filter" data-filter="done" aria-pressed="false">Selesai</button><button class="filter" data-filter="all" aria-pressed="false">Semua</button></div><span class="small muted">Urut tenggat terdekat</span></div>
+      <div id="empty" class="empty" hidden><h3>Ruang kosong untuk tugas berikutnya.</h3><p class="muted" id="empty-text">Catat tugas pertama, atau jelajahi contoh untuk demo.</p><button class="secondary" id="load-demo">Isi contoh demo</button></div>
+      <table id="tasks-table" hidden>
+        <thead><tr><th scope="col" class="check-cell"><span class="sr">Selesai</span></th><th scope="col">Tugas</th><th scope="col">Pengumpulan</th><th scope="col">Prioritas</th><th scope="col"><span class="sr">Buka detail</span></th></tr></thead>
+        <tbody id="tasks"></tbody>
+      </table>
+    </section>
+    <footer><span>Sela Tugas <span class="muted">/</span> Demo integrasi AI</span><div><button class="quiet small" id="demo-toggle">Isi contoh demo</button><a href="https://linear.app/hpic-worklog-system/project/sela-tugas-697acf51a7dc" target="_blank" rel="noreferrer">Project Linear</a><a href="https://github.com/rahmatmaul/sela-tugas" target="_blank" rel="noreferrer">Source GitHub</a></div></footer>
+    <p class="sr" id="status" role="status" aria-live="polite"></p>
+  </main>
+</body>
+</html>

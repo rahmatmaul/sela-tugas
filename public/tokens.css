@@ -1,0 +1,34 @@
+:root {
+  --color-paper: #faf9f4;
+  --color-panel: #f0f0e9;
+  --color-panel-2: #e5e9e0;
+  --color-ink: #252e2a;
+  --color-muted: #59635e;
+  --color-rule: #d5dbd1;
+  --color-accent: #22675e;
+  --color-accent-hover: #194f47;
+  --color-accent-soft: #e0ebe5;
+  --color-on-accent: #f7faf5;
+  --color-focus: #1b776e;
+  --color-error: #ab3827;
+  --color-error-soft: #f5e8df;
+  --color-amber: #815b19;
+  --color-amber-soft: #f1ead7;
+  --color-clear: transparent;
+  --font-body: 'Instrument Sans', 'Segoe UI', sans-serif;
+  --font-display: 'Instrument Sans', 'Segoe UI', sans-serif;
+  --text-small: .8125rem;
+  --text-body: 1rem;
+  --space-2xs: .25rem;
+  --space-xs: .5rem;
+  --space-sm: .75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+  --radius-input: .5rem;
+  --radius-panel: 1.25rem;
+  --radius-pill: 999px;
+  --duration: 120ms;
+}
