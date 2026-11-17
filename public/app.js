@@ -1,4 +1,13 @@
 const $ = selector => document.querySelector(selector);
+const isAndroid = typeof window.SelaAndroid?.request === 'function';
+const nativeRequests = new Map();
+window.SelaNativeReceive = (id, result) => {
+  const pending = nativeRequests.get(id);
+  if (!pending) return;
+  nativeRequests.delete(id);
+  if (result.ok) pending.resolve(result.data);
+  else pending.reject(new Error(result.error || 'Operasi belum berhasil.'));
+};
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
 const dayMs = 86400000;
 const dateText = value => new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(value));
@@ -9,6 +18,12 @@ state.search = url.searchParams.get('q') || '';
 $('#search').value = state.search;
 
 async function api(path, method = 'GET', data) {
+  if (isAndroid) return new Promise((resolve, reject) => {
+    const id = crypto.randomUUID();
+    nativeRequests.set(id, { resolve, reject });
+    try { window.SelaAndroid.request(id, path, method, JSON.stringify(data ?? {})); }
+    catch (error) { nativeRequests.delete(id); reject(error); }
+  });
   const response = await fetch('/api/' + path, { method, headers: { 'content-type': 'application/json' }, body: data === undefined ? undefined : JSON.stringify(data) });
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Permintaan gagal. Coba lagi.');
@@ -70,7 +85,11 @@ function renderSettings() {
   $('#alarm-toggle').setAttribute('aria-checked', String(!!settings.enabled));
   $('#alarm-toggle').setAttribute('aria-label', settings.enabled ? 'Nonaktifkan alarm otomatis' : 'Aktifkan alarm otomatis');
   $('#alarm-status').textContent = settings.enabled ? 'Aktif setiap hari pukul 09.00 WIB' : 'Aktifkan untuk pengingat otomatis';
-  document.querySelectorAll('[data-preview]').forEach(button => { button.disabled = settings.alarmBusy || !settings.notifications; });
+  document.querySelectorAll('[data-preview]').forEach(button => { button.disabled = settings.alarmBusy || (!settings.notifications && !isAndroid); });
+  if (isAndroid) {
+    $('.reminder-note').textContent = 'Sekitar pukul 09.00 WIB. Izinkan notifikasi. Mode hemat baterai Android dapat menunda pengingat.';
+    if (settings.enabled && !settings.notifications) $('#alarm-status').textContent = 'Izin notifikasi perlu diaktifkan melalui pengaturan Android.';
+  }
   $('#alarm-message').textContent = settings.lastError ? 'Alarm gagal. ' + settings.lastError : settings.alarmBusy ? 'Alarm desktop sedang tampil.' : '';
   $('#date').textContent = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' }).format(new Date());
 }
@@ -155,7 +174,8 @@ async function addFiles(files) {
     const prepared = [];
     for (const file of files) {
       if (file.size > 6 * 1024 * 1024) throw new Error('Setiap lampiran maksimal 6 MB.');
-      const type = file.type.split(';')[0];
+      const providedType = file.type.split(';')[0];
+      const type = ({ 'audio/x-wav': 'audio/wav', 'audio/x-m4a': 'audio/mp4' })[providedType] || providedType;
       if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'audio/webm', 'audio/ogg', 'audio/wav', 'audio/mpeg', 'audio/mp4'].includes(type)) throw new Error('Pilih foto JPG, PNG, WebP, GIF atau audio WebM, OGG, WAV, MP3, M4A.');
       prepared.push({ id: crypto.randomUUID(), name: file.name, type, data: await asBase64(file) });
     }
@@ -304,7 +324,19 @@ $('#record').addEventListener('click', async () => {
   }
   finally { if (session === state.captureSession && state.recordingPhase !== 'finishing') $('#record').disabled = false; }
 });
-$('#dictate').addEventListener('click', () => {
+$('#dictate').addEventListener('click', async () => {
+  if (isAndroid) {
+    const session = state.captureSession;
+    $('#dictate').disabled = true;
+    try {
+      const result = await api('dictate', 'POST');
+      if (session === state.captureSession && result.text) {
+        $('#description').value = ($('#description').value + ' ' + result.text).trim().slice(0, 5000);
+      }
+    } catch (error) { if (session === state.captureSession) showError('#form-error', error.message); }
+    finally { $('#dictate').disabled = false; }
+    return;
+  }
   if (recognition) { recognition.stop(); return; }
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) return showError('#form-error', 'Dikte belum tersedia di browser ini. Gunakan Chrome atau Edge, atau tulis catatan.');
@@ -333,7 +365,10 @@ $('#alarm-toggle').addEventListener('click', async () => {
 });
 document.querySelectorAll('[data-preview]').forEach(button => button.addEventListener('click', async () => {
   document.querySelectorAll('[data-preview]').forEach(b => { b.disabled = true; });
-  try { await api('alarms/preview', 'POST', { stage: Number(button.dataset.preview) }); $('#alarm-message').textContent = 'Alarm demo dibuka di desktop Windows.'; }
+  try {
+    await api('alarms/preview', 'POST', { stage: Number(button.dataset.preview) });
+    $('#alarm-message').textContent = isAndroid ? 'Notifikasi demo dikirim. Cek panel notifikasi HP.' : 'Alarm demo dibuka di desktop Windows.';
+  }
   catch (error) { $('#alarm-message').textContent = error.message; }
   finally { state.settings = await api('settings').catch(() => state.settings); renderSettings(); }
 }));
@@ -348,5 +383,9 @@ async function toggleDemo() {
 $('#load-demo').addEventListener('click', toggleDemo);
 $('#demo-toggle').addEventListener('click', toggleDemo);
 window.addEventListener('beforeunload', () => { stopCapture(); });
-await refresh().catch(error => { $('#loading').hidden = true; showError('#global-error', 'Aplikasi belum terhubung. ' + error.message + ' Jalankan ulang Sela Tugas lalu muat ulang halaman.'); });
+await refresh().catch(error => {
+  $('#loading').hidden = true;
+  showError('#global-error', isAndroid ? 'Data belum dapat dibuka. Tutup lalu buka ulang Sela Tugas. ' + error.message :
+    'Aplikasi belum terhubung. ' + error.message + ' Jalankan ulang Sela Tugas lalu muat ulang halaman.');
+});
 setInterval(() => void refresh().catch(error => showError('#global-error', 'Koneksi terputus. ' + error.message)), 30000);

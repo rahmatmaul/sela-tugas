@@ -2,6 +2,16 @@
 
 Aplikasi lokal untuk mencatat tugas mahasiswa dan mengingatkan tenggat dengan alarm harian. Dibangun untuk demo integrasi AI pada 18 November 2026.
 
+## APK Android
+
+[Unduh Sela Tugas untuk Android](downloads/SelaTugas-android-demo.apk). Buka halaman file APK, pilih Download raw file, lalu buka berkas yang diunduh dan ikuti dialog pemasangan Android. Repository privat memerlukan login GitHub.
+
+APK demo mendukung Android 8 atau lebih baru dengan Android System WebView yang diperbarui. Tugas dan lampiran disimpan pada HP. Aktifkan Pengingat harian dan izinkan notifikasi, lalu coba suara H-3/H-2/H-1. Perekaman VN meminta izin mikrofon. Dikte memakai layanan pengenalan suara yang tersedia di HP.
+
+Android menjadwalkan pengingat sekitar pukul 09.00 WIB, termasuk ketika layar aplikasi ditutup. Penghematan baterai dan pengaturan notifikasi perangkat dapat memengaruhi waktu serta suara. Setelah HP dihidupkan ulang, jadwal dipasang kembali. Force stop melalui pengaturan Android menangguhkan pengingat sampai aplikasi dibuka lagi.
+
+APK memakai penyimpanan lokal tersendiri pada HP. Build awal ini ditandatangani dengan sertifikat debug untuk demo. [Petunjuk build Android](android/README.md).
+
 ## Menjalankan
 
 Gunakan Windows dan Node.js 24 LTS. Buka file **Jalankan Sela Tugas.cmd**, lalu akses [Sela Tugas lokal](http://127.0.0.1:4317).
@@ -70,7 +80,7 @@ Implementasi awal pada sesi ini dijalankan Maulana dengan bantuan Codex. Peran k
 
 ## Lingkup versi demo
 
-Versi ini berjalan lokal pada satu perangkat Windows. Fitur VN menyimpan rekaman dan fitur dikte mengubah suara langsung menjadi teks. Transkripsi file audio yang diunggah belum tersedia. Dikte dengan suara asli masih perlu pemeriksaan layanan browser.
+Versi desktop berjalan lokal pada satu perangkat Windows. APK Android memakai penyimpanan serta pengingat native di HP. Fitur VN menyimpan rekaman dan fitur dikte mengubah suara langsung menjadi teks. Transkripsi file audio yang diunggah belum tersedia. Dikte desktop dengan suara asli serta fitur perangkat pada APK masih perlu pemeriksaan langsung pada perangkat pengguna.
 
 ## Referensi
 

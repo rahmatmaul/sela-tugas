@@ -1,0 +1,44 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'id.selatugas.app'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'id.selatugas.app'
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0-demo'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    sourceSets.main.assets.srcDir(layout.buildDirectory.dir('generated/webAssets'))
+}
+
+tasks.register('prepareWebAssets', Copy) {
+    from rootProject.file('../public')
+    into layout.buildDirectory.dir('generated/webAssets')
+    doLast {
+        def source = rootProject.file('../.env.local')
+        def input = new Properties()
+        if (source.exists()) {
+            source.withReader('UTF-8') { input.load(it) }
+        }
+        def config = new Properties()
+        config.setProperty('host', input.getProperty('POSTHOG_HOST', ''))
+        config.setProperty('token', input.getProperty('POSTHOG_TOKEN', ''))
+        config.setProperty('projectId', input.getProperty('POSTHOG_PROJECT_ID', ''))
+        layout.buildDirectory.file('generated/webAssets/posthog.properties').get().asFile.withWriter('UTF-8') {
+            config.store(it, 'Public project ingestion configuration')
+        }
+    }
+}
+tasks.named('preBuild').configure { dependsOn 'prepareWebAssets' }
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+}
