@@ -59,12 +59,12 @@ Pengujian mencakup CRUD, tanggal kalender, alarm per tahap, penyimpanan setelah 
 
 | Anggota | Peran yang direncanakan |
 | --- | --- |
-| Maulana | Orkestrator AI dan pelaksana build demo |
+| Maulana | Project Manager |
 | Risky | Backend |
 | Robby | Frontend |
 | Noval | Pendamping frontend |
 | Aurel | Dokumentasi dan PPT |
-| Jessica / Kak Ajes | Dokumentasi dan PPT |
+| Jesica | Dokumentasi dan PPT |
 
 Implementasi awal pada sesi ini dijalankan Maulana dengan bantuan Codex. Peran kelompok di atas berasal dari pembagian yang disampaikan Maulana.
 
